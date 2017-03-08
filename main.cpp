@@ -57,16 +57,16 @@ int main() {
 	    if (event.type == SDL_KEYDOWN) {
 		    switch (event.button.button) {
 			    case SDL_SCANCODE_D:
-				    if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 1, cursor, grid)) cursor.x += grid * 2;
+				    if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 1, cursor, grid)) cursor.x += grid;
 				    break;
 			    case SDL_SCANCODE_A:
-				    if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 2, cursor, grid)) cursor.x -= grid * 2;
+				    if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 2, cursor, grid)) cursor.x -= grid;
 				    break;
 			    case SDL_SCANCODE_S:
-				    if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 3, cursor, grid)) cursor.y += grid * 2;
+				    if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 3, cursor, grid)) cursor.y += grid;
 				    break;
 			    case SDL_SCANCODE_W:
-				    if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 4, cursor, grid)) cursor.y -= grid * 2;
+				    if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 4, cursor, grid)) cursor.y -= grid;
 				    break;
 		    }
 	    }
@@ -88,7 +88,7 @@ int vay(position arr[], int size_windows, int grid) {
 	int random_quant = 14 + 1;
 	while(quit) {
 		random_quant--;
-		i++;
+		i += 2;
 		random_numb = rand() % 6;
 		if (random_numb == 0) {
 			if (status == 4) status = 1;
@@ -102,20 +102,28 @@ int vay(position arr[], int size_windows, int grid) {
 		}
 		switch (status) {
 			case 1:
-				arr[i].x = arr[i-1].x + grid * 2;
-				arr[i].y = arr[i-1].y;
+				arr[i-1].x = arr[i-2].x + grid;
+				arr[i-1].y = arr[i-2].y;
+				arr[i].x = arr[i-2].x + grid * 2;
+				arr[i].y = arr[i-2].y;
 				break;
 			case 2:
-				arr[i].x = arr[i-1].x - grid * 2;
-				arr[i].y = arr[i-1].y;
+				arr[i-1].x = arr[i-2].x - grid;
+				arr[i-1].y = arr[i-2].y;
+				arr[i].x = arr[i-2].x - grid * 2;
+				arr[i].y = arr[i-2].y;
 				break;
 			case 3:
-				arr[i].y = arr[i-1].y + grid * 2;
-				arr[i].x = arr[i-1].x;
+				arr[i-1].y = arr[i-2].y + grid;
+				arr[i-1].x = arr[i-2].x;
+				arr[i].y = arr[i-2].y + grid * 2;
+				arr[i].x = arr[i-2].x;
 				break;
 			case 4:
-				arr[i].y = arr[i-1].y - grid * 2;
-				arr[i].x = arr[i-1].x;
+				arr[i-1].y = arr[i-2].y - grid;
+				arr[i-1].x = arr[i-2].x;
+				arr[i].y = arr[i-2].y - grid * 2;
+				arr[i].x = arr[i-2].x;
 				break;
 		}
 		if (arr[i].x >= size_windows || arr[i].x <= 0 || arr[i].y >= size_windows || arr[i].y <= 0) {
@@ -172,16 +180,16 @@ bool test_move_cursor(position a[], int index_x[], int n, int course, position c
 	cout << "course = " << course << endl;
 	switch (course) {
 		case 1:
-			cursor.x += grid * 2;
+			cursor.x += grid;
 			break;
 		case 2:
-			cursor.x -= grid * 2;
+			cursor.x -= grid;
 			break;
 		case 3:
-			cursor.y += grid * 2;
+			cursor.y += grid;
 			break;
 		case 4:
-			cursor.y -= grid * 2;
+			cursor.y -= grid;
 			break;
 	}
 	bool found = false;
