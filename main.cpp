@@ -14,16 +14,18 @@ int vay(position arr[], int size_window, int grid);
 
 void ShakerSort(position a[], int index_x[], int n);
 
+bool found_d(position a[], int index_x[], int n, position cursor);
+
 bool test_move_cursor(position a[], int index_x[], int n, int course, position cursor, int grid);
 
 int main() {
     srand(time(NULL));
     SDL_Init(SDL_INIT_EVERYTHING);
-    int size_windows_w = 800, size_windows_h = 800;
+    int size_windows_w = 800, size_windows_h = 600;
     SDL_Window *win = SDL_CreateWindow("Myprj", 0, 0, size_windows_w, size_windows_h, SDL_WINDOW_OPENGL);
     SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     SDL_Event event;
-	int grid = 10;
+	int grid = 12;
 	int n_arr_vay = (size_windows_h * size_windows_h) / grid;
 	position arr_vay[n_arr_vay];
     bool quit = true;
@@ -35,26 +37,52 @@ int main() {
 	cursor.x = size_windows_h / 2;
 	cursor.y = size_windows_h / 2;
 	SDL_Rect me_r;
-		me_r.x = cursor.x + 5;
-		me_r.y = cursor.y + 5;
-		me_r.w = 10;
-		me_r.h = 10;
+		me_r.x = cursor.x + grid / 2;
+		me_r.y = cursor.y + grid / 2;
+		me_r.w = grid;
+		me_r.h = grid;
 	SDL_Surface *me_bmp = SDL_LoadBMP("me.bmp");
 	if(me_bmp == NULL) {
 		cout << "Текстурка не прогрузиласть блять: вот почему: " << SDL_GetError() << endl;
 	}
 	SDL_Texture *me = SDL_CreateTextureFromSurface(ren, me_bmp);
 	SDL_FreeSurface(me_bmp);
+	SDL_Surface *background_bmp = SDL_LoadBMP("background.bmp");
+	SDL_Texture *background = SDL_CreateTextureFromSurface(ren, background_bmp);
+	SDL_FreeSurface(background_bmp);
+	SDL_Rect back_r[size_windows_h/grid][size_windows_h/grid];
+	position back_cursor;
+	for(int i = 0; i < size_windows_h/grid; i++) {
+		for(int j = 0; j < size_windows_h/grid; j++) {
+			back_cursor.x = i*grid;
+			back_cursor.y = j*grid;
+			back_r[i][j].h = grid;
+			back_r[i][j].w = grid;
+			if(!found_d(arr_vay, index_sort_arr_vay_x, n_vay, back_cursor)) {
+				back_r[i][j].x = i*grid - grid/2;
+				back_r[i][j].y = j*grid - grid/2;
+			}
+			else {
+				back_r[i][j].x = size_windows_h;
+				back_r[i][j].y = size_windows_h;
+			}
+		}
+	}
     while(quit) {
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
 	    SDL_RenderClear(ren);
 	    SDL_PollEvent(&event);
 	    SDL_SetRenderDrawColor(ren, 50, 50, 50, 255);
 	    SDL_RenderCopy(ren, me, NULL, &me_r);
+	    for(int i = 0; i < size_windows_h/grid; i++) {
+		    for(int j = 0; j < size_windows_h/grid; j++) {
+			    SDL_RenderCopy(ren, background, NULL, &back_r[i][j]);
+		    }
+	    }
 	    for(int i = 0; i < n_vay - 1; i++) {
 		    SDL_RenderDrawLine(ren, arr_vay[i].x, arr_vay[i].y, arr_vay[i+1].x, arr_vay[i+1].y);
 	    }
-	    if (event.type == SDL_KEYDOWN) {
+	    if (event.type == SDL_KEYDOWN && me_r.x == (cursor.x - grid / 2) && me_r.y == (cursor.y - grid / 2)) {
 		    switch (event.button.button) {
 			    case SDL_SCANCODE_D:
 				    if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 1, cursor, grid)) cursor.x += grid;
@@ -70,8 +98,10 @@ int main() {
 				    break;
 		    }
 	    }
-	    me_r.x = cursor.x - 5;
-	    me_r.y = cursor.y - 5;
+	    if(me_r.x < (cursor.x - grid / 2)) me_r.x ++;
+	    if(me_r.x > (cursor.x - grid / 2)) me_r.x --;
+	    if(me_r.y < (cursor.y - grid / 2)) me_r.y ++;
+	    if(me_r.y > (cursor.y - grid / 2)) me_r.y --;
 	    if (event.type == SDL_QUIT) quit = false;
         SDL_RenderPresent(ren);
     }
@@ -175,9 +205,30 @@ void ShakerSort(position a[], int index_x[], int n) {
 	return;
 }
 
+bool found_d(position a[], int index_x[], int n, position cursor) {
+	bool found = false;
+	int left = 0, right = n - 1, m;
+	while (left < right) {
+		m = (left + right) / 2;
+		if (a[index_x[m]].x < cursor.x) left = m + 1;
+		else right = m;
+	}
+	m = right;
+	cout << "x = " << a[index_x[m]].x << " y = " << a[index_x[m]].y << endl;
+	if (a[index_x[m]].x == cursor.x) {
+		while(a[index_x[m]].x == cursor.x && !found) {
+			if(a[index_x[m]].y == cursor.y) found = true;
+			else m++;
+		}
+	}
+	if(!found) {
+		cout << endl << "x = " << cursor.x << " y = " << cursor.y << endl;
+	}
+	return found;
+}
+
+
 bool test_move_cursor(position a[], int index_x[], int n, int course, position cursor, int grid) {
-	cout << "cursor = " << cursor.x << " " << cursor.y << endl;
-	cout << "course = " << course << endl;
 	switch (course) {
 		case 1:
 			cursor.x += grid;
@@ -192,22 +243,6 @@ bool test_move_cursor(position a[], int index_x[], int n, int course, position c
 			cursor.y -= grid;
 			break;
 	}
-	bool found = false;
-	int left = 1, right = n, m;
-	while (left < right) {
-		m = (left + right) / 2;
-		if (a[index_x[m]].x < cursor.x) left = m + 1;
-		else right = m;
-	}
-	m++;
-	cout << "a[" << m << "] = " << a[index_x[m]].x << " " << a[index_x[m]].y << endl;
-	if (a[index_x[m]].x == cursor.x) {
-		while(a[index_x[m]].x == cursor.x && !found) {
-			cout << m << " ";
-			if(a[index_x[m]].y == cursor.y) found = true;
-			else m++;
-		}
-	}
-	cout << endl << "a[" << index_x[m] << "] = " << a[index_x[m]].x << " " << a[index_x[m]].y << endl;
-	return found;
+	return found_d(a, index_x, n, cursor);
 }
+
