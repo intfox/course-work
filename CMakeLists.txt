@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.6)
+project(labyrinth)
+set(SOURCE_FILES main.cpp background.bmp me.bmp)
+add_executable(main.o ${SOURCE_FILES})
+target_link_libraries(main.o ${SDL2_LIBRARY} -lSDL2)
