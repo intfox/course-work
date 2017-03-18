@@ -238,7 +238,8 @@ void game(int size_windows_h, SDL_Window* win, SDL_Renderer *ren, SDL_Event even
 		if(me_r.x > (cursor.x - grid / 2)) me_r.x --;
 		if(me_r.y < (cursor.y - grid / 2)) me_r.y ++;
 		if(me_r.y > (cursor.y - grid / 2)) me_r.y --;
-		if (event.type == SDL_QUIT) quit = false;
+		if(event.type == SDL_QUIT) quit = false;
+		if(cursor.x < 0 || cursor.x > size_windows_h || cursor.y < 0 || cursor.y > size_windows_h) quit = false;
 		SDL_RenderPresent(ren);
 	}
 	
