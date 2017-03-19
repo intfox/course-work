@@ -18,16 +18,23 @@ bool found_d(position a[], int index_x[], int n, position cursor);
 
 bool test_move_cursor(position a[], int index_x[], int n, int course, position cursor, int grid);
 
-void game(int size_window_h, SDL_Window* win, SDL_Renderer *ren, SDL_Event event);
+bool game(int size_window_h, SDL_Window* win, SDL_Renderer *ren, SDL_Event event);
+
+int menu(int size_windows_h, SDL_Window *win, SDL_Renderer *ren, SDL_Event event);
+
+void text_render(SDL_Window *win, SDL_Renderer *ren, int x, int y, char text[], int size_arr_text, int size_text);
 
 int main() {
     srand(time(NULL));
     SDL_Init(SDL_INIT_EVERYTHING);
-    int size_windows_w = 600, size_windows_h = 600;
-    SDL_Window *win = SDL_CreateWindow("Myprj", 0, 0, size_windows_w, size_windows_h, SDL_WINDOW_OPENGL);
+    int size_windows_w = 800, size_windows_h = 600;
+    SDL_Window *win = SDL_CreateWindow("Myprj", 0, 0, size_windows_w, size_windows_h, SDL_WINDOW_MAXIMIZED);
     SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     SDL_Event event;
-	game(size_windows_h, win, ren, event);
+	bool quit = true;
+	while(quit) {
+		quit = game(size_windows_h, win, ren, event);
+	}
 	SDL_Quit;
 }
 
@@ -166,7 +173,7 @@ bool test_move_cursor(position a[], int index_x[], int n, int course, position c
 	return found_d(a, index_x, n, cursor);
 }
 
-void game(int size_windows_h, SDL_Window* win, SDL_Renderer *ren, SDL_Event event) {
+bool game(int size_windows_h, SDL_Window* win, SDL_Renderer *ren, SDL_Event event) {
 	int grid = 12;
 	int n_arr_vay = (size_windows_h * size_windows_h) / grid;
 	position arr_vay[n_arr_vay];
@@ -207,6 +214,8 @@ void game(int size_windows_h, SDL_Window* win, SDL_Renderer *ren, SDL_Event even
 			}
 		}
 	}
+	char massive[8] = {'n', 'e', 'w', ' ', 'g', 'a', 'm', 'e'};
+	text_render(win, ren, 100, 100, massive, 8, 50);
 	while(quit) {
 		SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
 		SDL_RenderClear(ren);
@@ -232,16 +241,124 @@ void game(int size_windows_h, SDL_Window* win, SDL_Renderer *ren, SDL_Event even
 				case SDL_SCANCODE_W:
 					if (test_move_cursor(arr_vay, index_sort_arr_vay_x, n_vay, 4, cursor, grid)) cursor.y -= grid;
 					break;
+				case SDL_SCANCODE_ESCAPE:
+					return 0;
 			}
 		}
 		if(me_r.x < (cursor.x - grid / 2)) me_r.x ++;
 		if(me_r.x > (cursor.x - grid / 2)) me_r.x --;
 		if(me_r.y < (cursor.y - grid / 2)) me_r.y ++;
 		if(me_r.y > (cursor.y - grid / 2)) me_r.y --;
-		if(event.type == SDL_QUIT) quit = false;
+		if(event.type == SDL_QUIT) return 0;
 		if(cursor.x < 0 || cursor.x > size_windows_h || cursor.y < 0 || cursor.y > size_windows_h) quit = false;
 		SDL_RenderPresent(ren);
 	}
-	
+	return 1;
 }
 
+int menu(int size_windows_h, SDL_Window *win, SDL_Renderer *ren, SDL_Event event) {
+	return 0;
+}
+
+void text_render(SDL_Window *win, SDL_Renderer *ren, int x, int y, char text[], int size_arr_text, int size_text) {
+	SDL_Surface *text_surf = SDL_LoadBMP("text/alph.bmp");
+	SDL_Texture *text_texture = SDL_CreateTextureFromSurface(ren, text_surf);
+	SDL_FreeSurface(text_surf);
+	SDL_Rect *text_rect = new SDL_Rect [size_arr_text];
+	SDL_Rect *text_rect_numb = new SDL_Rect [size_arr_text];
+	for(int i = 0; i < size_arr_text; i++) {
+		switch (text[i]){
+			case 'q':
+				text_rect_numb[i].x = 16 * 100;
+				break;
+			case 'w':
+				text_rect_numb[i].x = 22 * 100;
+				break;
+			case 'e':
+				text_rect_numb[i].x = 4 * 100;
+				break;
+			case 'r':
+				text_rect_numb[i].x = 17 * 100;
+				break;
+			case 't':
+				text_rect_numb[i].x = 19 * 100;
+				break;
+			case 'y':
+				text_rect_numb[i].x = 24 * 100;
+				break;
+			case 'u':
+				text_rect_numb[i].x = 20 * 100;
+				break;
+			case 'i':
+				text_rect_numb[i].x = 8 * 100;
+				break;
+			case 'o':
+				text_rect_numb[i].x = 14 * 100;
+				break;
+			case 'p':
+				text_rect_numb[i].x = 15 * 100;
+				break;
+			case 'a':
+				text_rect_numb[i].x = 0 * 100;
+				break;
+			case 's':
+				text_rect_numb[i].x = 18 * 100;
+				break;
+			case 'd':
+				text_rect_numb[i].x = 3 * 100;
+				break;
+			case 'f':
+				text_rect_numb[i].x = 5 * 100;
+				break;
+			case 'g':
+				text_rect_numb[i].x = 6 * 100;
+				break;
+			case 'h':
+				text_rect_numb[i].x = 7 * 100;
+				break;
+			case 'j':
+				text_rect_numb[i].x = 9 * 100;
+				break;
+			case 'k':
+				text_rect_numb[i].x = 10 * 100;
+				break;
+			case 'l':
+				text_rect_numb[i].x = 11 * 100;
+				break;
+			case 'z':
+				text_rect_numb[i].x = 25 * 100;
+				break;
+			case 'x':
+				text_rect_numb[i].x = 23 * 100;
+				break;
+			case 'c':
+				text_rect_numb[i].x = 2 * 100;
+				break;
+			case 'v':
+				text_rect_numb[i].x = 21 * 100;
+				break;
+			case 'b':
+				text_rect_numb[i].x = 1 * 100;
+				break;
+			case 'n':
+				text_rect_numb[i].x = 13 * 100;
+				break;
+			case 'm':
+				text_rect_numb[i].x = 12 * 100;
+				break;
+			default:
+				text_rect_numb[i].x = 26 * 100;
+				break;
+		}
+		text_rect_numb[i].y = 0;
+		text_rect_numb[i].h = 100;
+		text_rect_numb[i].w = 100;
+		text_rect[i].h = size_text;
+		text_rect[i].w = size_text;
+		text_rect[i].x = x;
+		text_rect[i].y = y;
+		x += (2*size_text) / 3;
+		SDL_RenderCopy(ren, text_texture, &text_rect_numb[i], &text_rect[i]);
+	}
+	return;
+}
