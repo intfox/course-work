@@ -1,4 +1,4 @@
-all: main.o
+all: main.o bin
 	g++ main.o -o bin/Town
 
 main.o: main.cpp build
@@ -6,3 +6,9 @@ main.o: main.cpp build
 
 build:
 	mkdir build
+
+bin:
+	mkdir bin
+
+clear:
+	rm -r build
