@@ -1,0 +1,6 @@
+class objects{
+public:
+    
+private:
+
+}

@@ -2,5 +2,7 @@
 #define TOWN_MAIN_H
 
 #include <iostream>
+#include <string>
+#include "graphics.h"
 
 #endif
