@@ -1,4 +1,4 @@
-class graphics{
+class Graphics {
 public:
 
 private:

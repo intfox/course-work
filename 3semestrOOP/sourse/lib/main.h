@@ -4,5 +4,6 @@
 #include <iostream>
 #include <string>
 #include "graphics.h"
+#include "objects.h"
 
 #endif

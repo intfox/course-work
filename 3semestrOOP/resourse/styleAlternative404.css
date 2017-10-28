@@ -1,0 +1,13 @@
+.pageNotFound {
+	font-size: 100px;
+	margin-top: 15%;
+	text-align: center;
+	font-weight: bold;
+	background: linear-gradient(230deg, #A63C39 0%, #308C36 100%);  /* подробнее про градиенты */ 
+	background-clip: text;  /* подробнее про background-clip */ 
+	color: transparent;
+}
+
+body {
+	margin: 0 auto;
+}
