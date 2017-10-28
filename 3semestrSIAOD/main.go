@@ -1,7 +1,7 @@
-package 3semestrOOP
+package courseWork3SmestrSIAOD
 
 import (
-	"3semestrSIAOD/graphic"
+	"github.com/intfox/course-work/tree/develop/3semestrSIAOD/graphic"
 )
 
 /*номер варианта: 4

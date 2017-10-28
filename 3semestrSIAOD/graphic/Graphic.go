@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"3semestrSIAOD/base"
+	"github.com/intfox/course-work/tree/develop/3semestrSIAOD/base"
 )
 
 var bd []base.Record
