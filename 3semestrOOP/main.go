@@ -1,4 +1,4 @@
-package main
+package 3semestrOOP
 
 import (
 	"3semestrSIAOD/graphic"
