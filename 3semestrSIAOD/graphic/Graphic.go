@@ -13,7 +13,7 @@ var bd []base.Record
 var bdSpis base.Spis
 var numb_elem_bd = 4000
 var numb_elem_table = 20
-var pageNotFound, err = template.ParseFiles("graphic/pageNotFound.html")
+var pageNotFound, err = template.ParseFiles("html/pageNotFound.html")
 
 type RetDat struct {
 	RetBD           []base.RecordString
@@ -22,7 +22,7 @@ type RetDat struct {
 }
 
 func indexHendler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("graphic/index.html")
+	t, err := template.ParseFiles("html/index.html")
 	if err != nil {
 		fmt.Fprint(w, "error: index.html")
 	}
@@ -30,7 +30,7 @@ func indexHendler(w http.ResponseWriter, r *http.Request) {
 }
 
 func pageHendler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("graphic/page.html")
+	t, err := template.ParseFiles("html/page.html")
 	if err != nil {
 		fmt.Fprint(w, "error: page.html")
 	}

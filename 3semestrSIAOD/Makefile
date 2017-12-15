@@ -1,20 +1,15 @@
-all: main graphics objects bin
-	g++ build/main.o build/graphics.o build/objects.o -o bin/Town
-
-main: build
-	g++ -c sourse/main.cpp -o build/main.o
-
-graphics: build
-	g++ -c sourse/graphics/graphics.cpp -o build/graphics.o
-
-objects: build
-	g++ -c sourse/objects/objects.cpp -o build/objects.o
-
-build:
-	mkdir build
-
-bin:
-	mkdir bin
+all: clear
+	mkdir -p bin
+	go build -o bin/main
+	GOOS=windows GOARCH=amd64 go build -o bin/main.exe main.go
+	mkdir -p bin/html
+	mkdir -p bin/resourse
+	cp html/* bin/html
+	cp resourse/* bin/resourse
+	cp READMY.txt bin/READMY.txt
+	cp testBase1.dat bin/testBase1.dat
+	zip -r course-work.zip bin
 
 clear:
-	rm -r build
+	rm -r -f bin
+	rm -f course-work.zip

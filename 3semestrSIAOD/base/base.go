@@ -148,7 +148,7 @@ func Read() []Record {
 	const sizeBD = 4000
 	file, err := os.Open("testBase1.dat")
 	if err != nil {
-		fmt.Println("error: Open()")
+		fmt.Println("error: file testBase1.dat not found")
 		return make([]Record, 1)
 	}
 	bd := make([]Record, sizeBD)
