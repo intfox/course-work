@@ -7,6 +7,10 @@ import (
 )
 
 type Key func(Record, int) int
+type KeySearch interface {
+	Less(RecordString, RecordString) bool
+	Equal(RecordString, RecordString) bool
+}
 
 type Spis struct {
 	Head *Elem
@@ -160,6 +164,25 @@ func (rec Record) ConvertStructToString() RecordString {
 	returnRec.Year = int(rec.Year)
 	returnRec.Num_of_page = int(rec.Num_of_page)
 	return returnRec
+}
+
+func BinSearch(array []RecordString, searchElem RecordString, f KeySearch) (bool, RecordString) {
+	L := 1
+	R := len(array)
+	var m int
+	for L < R {
+		m = (L + R) / 2
+		if f.Less(array[m], searchElem) {
+			L = m + 1
+		} else {
+			R = m
+		}
+	}
+	if f.Equal(array[m], searchElem) {
+		return true, array[m]
+	} else {
+		return false, array[m]
+	}
 }
 
 func ConvertToString(str []byte) string {
