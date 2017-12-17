@@ -8,8 +8,59 @@ import (
 
 type Key func(Record, int) int
 type KeySearch interface {
-	Less(RecordString, RecordString) bool
-	Equal(RecordString, RecordString) bool
+	Less(int, string) bool
+	Equal(int, string) bool
+	Section(int, int) []RecordString
+	Len() int
+}
+
+type FamilyKeySearch []RecordString
+
+func (fks FamilyKeySearch) Less(rs1 int, rs2 string) bool {
+	var buff_rs1, buff_rs2 string
+	var space int
+	var i int
+	for space < 2 {
+		if fks[rs1].Title[i] == byte(32) {
+			space++
+		}
+		i++
+	}
+	buff_rs1 = string(fks[rs1].Title[i:])
+	i = 0
+	space = 0
+	for space < 2 {
+		if rs2[i] == byte(32) {
+			space++
+		}
+		i++
+	}
+	buff_rs2 = string(rs2[i:])
+	if buff_rs1 < buff_rs2 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (fks FamilyKeySearch) Equal(rs1 int, rs2 string) bool {
+	fmt.Println("LEN:", len(fks))
+	fmt.Println("fks[rs1]:", fks[rs1].Title, " rs2:", rs2)
+	fmt.Println("len(fks[rs1]):", len(fks[rs1].Title), "len(rs2)", len(rs2))
+	fmt.Println("fks[rs1] == rs2: ", fks[rs1].Title == rs2)
+	if fks[rs1].Title == rs2 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (fks FamilyKeySearch) Section(rs1 int, rs2 int) []RecordString {
+	return fks[rs1:rs2]
+}
+
+func (fks FamilyKeySearch) Len() int {
+	return len(fks)
 }
 
 type Spis struct {
@@ -106,27 +157,6 @@ func FamilyKey(rec Record, a int) int {
 	return int(rec.Title[a+i])
 }
 
-type ByAuthor []Record
-
-func (rec ByAuthor) Len() int {
-	return len(rec)
-}
-
-func (rec ByAuthor) Swap(a, b int) {
-	rec[a], rec[b] = rec[b], rec[a]
-}
-
-func (rec ByAuthor) Less(a, b int) bool {
-	for i := range rec[a].Author {
-		if rec[a].Title[i] < rec[b].Title[i] {
-			return true
-		} else if rec[a].Title[i] > rec[b].Title[i] {
-			return false
-		}
-	}
-	return false
-}
-
 type Record struct {
 	Author      [12]byte
 	Title       [32]byte
@@ -166,22 +196,29 @@ func (rec Record) ConvertStructToString() RecordString {
 	return returnRec
 }
 
-func BinSearch(array []RecordString, searchElem RecordString, f KeySearch) (bool, RecordString) {
-	L := 1
-	R := len(array)
+func BinSearch(array KeySearch, searchElem string) (bool, []RecordString) {
+	L := 0
+	R := array.Len()
 	var m int
 	for L < R {
 		m = (L + R) / 2
-		if f.Less(array[m], searchElem) {
+		fmt.Println("L:", L, "R:", R)
+		if array.Less(m, searchElem) {
 			L = m + 1
 		} else {
 			R = m
 		}
 	}
-	if f.Equal(array[m], searchElem) {
-		return true, array[m]
+	m_last := m + 1
+	for array.Equal(m_last, searchElem) {
+		m_last++
+	}
+	if array.Equal(m, searchElem) {
+		fmt.Println("m:", m, " m_last:", m_last)
+		fmt.Println("array[:]", array.Section(m, m_last))
+		return true, array.Section(m, m_last)
 	} else {
-		return false, array[m]
+		return false, make([]RecordString, 1)
 	}
 }
 
