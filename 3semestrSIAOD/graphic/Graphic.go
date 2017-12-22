@@ -15,6 +15,9 @@ var bdSpis base.Spis
 var numb_elem_bd = 4000
 var numb_elem_table = 20
 var pageNotFound, err = template.ParseFiles("html/pageNotFound.html")
+var bdTree base.AVLTree
+var tree_status bool
+var bdTreeArr []base.RecordString
 
 type RetDat struct {
 	RetBD           []base.RecordString
@@ -42,7 +45,11 @@ func pageHendler(w http.ResponseWriter, r *http.Request) {
 	if ret_dat.RetPage < len(bd)/numb_elem_table && ret_dat.RetPage > -1 {
 		ret_dat.RetBD = make([]base.RecordString, numb_elem_table)
 		for i := 0; i < numb_elem_table && i+(ret_dat.RetPage*numb_elem_table) < len(bd); i++ {
-			ret_dat.RetBD[i] = bd[i+(ret_dat.RetPage*numb_elem_table)].ConvertStructToString()
+			if tree_status {
+				ret_dat.RetBD[i] = bdTreeArr[i+(ret_dat.RetPage*numb_elem_table)]
+			} else {
+				ret_dat.RetBD[i] = bd[i+(ret_dat.RetPage*numb_elem_table)].ConvertStructToString()
+			}
 			ret_dat.RetBD[i].Numb = (ret_dat.RetPage * numb_elem_table) + i
 		}
 		t.ExecuteTemplate(w, "page", ret_dat)
@@ -59,9 +66,6 @@ func sortHendler(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < numb_elem_bd; i++ {
 		bd_string[i] = bd[i].ConvertStructToString()
 		bd_string[i].Numb = i
-	}
-	for i := 0; i < 20; i++ {
-		fmt.Println("bd[", i, "]= ", bd_string[i].Title)
 	}
 }
 
@@ -83,11 +87,27 @@ func searchHendler(w http.ResponseWriter, r *http.Request) {
 	ret_dat.RetNumb_of_page = len(ret_dat.RetBD)/numb_elem_table - 1
 	ret_dat.RetPage = 0
 	if search_bool {
-		fmt.Println("RetBd:", ret_dat.RetBD)
 		t.ExecuteTemplate(w, "page", ret_dat)
 	} else {
 		fmt.Fprint(w, "Элемент не найден")
 	}
+}
+
+func treeHendlerLR(w http.ResponseWriter, r *http.Request) {
+	bdTree.RoundTreeLR(bdTreeArr)
+	tree_status = true
+	http.Redirect(w, r, "/page/0", 302)
+}
+
+func treeHendlerTD(w http.ResponseWriter, r *http.Request) {
+	bdTree.RoundTreeTD(bdTreeArr)
+	tree_status = true
+	http.Redirect(w, r, "/page/0", 302)
+}
+
+func arrHendler(w http.ResponseWriter, r *http.Request) {
+	tree_status = false
+	http.Redirect(w, r, "/page/0", 302)
 }
 
 func Init() {
@@ -96,11 +116,17 @@ func Init() {
 	for i := 0; i < numb_elem_bd; i++ {
 		bdSpis.Push(bd[i])
 	}
+	for i := range bd {
+		bdTree.Push(bd[i].ConvertStructToString())
+	}
+	bdTreeArr = make([]base.RecordString, numb_elem_bd)
 	http.HandleFunc("/", indexHendler)
 	http.HandleFunc("/page/", pageHendler)
 	http.HandleFunc("/page/sort", sortHendler)
 	http.HandleFunc("/search/", searchHendler)
-	//	http.HandleFunc("/page/search/", searchHendler)
+	http.HandleFunc("/treeLR", treeHendlerLR)
+	http.HandleFunc("/treeTD", treeHendlerTD)
+	http.HandleFunc("/arr", arrHendler)
 	http.Handle("/resourse/", http.StripPrefix("/resourse/", http.FileServer(http.Dir("./resourse/"))))
 	err := http.ListenAndServe(":80", nil)
 	if err != nil {

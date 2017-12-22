@@ -44,10 +44,6 @@ func (fks FamilyKeySearch) Less(rs1 int, rs2 string) bool {
 }
 
 func (fks FamilyKeySearch) Equal(rs1 int, rs2 string) bool {
-	fmt.Println("LEN:", len(fks))
-	fmt.Println("fks[rs1]:", fks[rs1].Title, " rs2:", rs2)
-	fmt.Println("len(fks[rs1]):", len(fks[rs1].Title), "len(rs2)", len(rs2))
-	fmt.Println("fks[rs1] == rs2: ", fks[rs1].Title == rs2)
 	if fks[rs1].Title == rs2 {
 		return true
 	} else {
@@ -202,7 +198,6 @@ func BinSearch(array KeySearch, searchElem string) (bool, []RecordString) {
 	var m int
 	for L < R {
 		m = (L + R) / 2
-		fmt.Println("L:", L, "R:", R)
 		if array.Less(m, searchElem) {
 			L = m + 1
 		} else {
@@ -214,8 +209,6 @@ func BinSearch(array KeySearch, searchElem string) (bool, []RecordString) {
 		m_last++
 	}
 	if array.Equal(m, searchElem) {
-		fmt.Println("m:", m, " m_last:", m_last)
-		fmt.Println("array[:]", array.Section(m, m_last))
 		return true, array.Section(m, m_last)
 	} else {
 		return false, make([]RecordString, 1)
@@ -235,4 +228,188 @@ func ConvertToString(str []byte) string {
 		}
 	}
 	return returnStr
+}
+
+type AVLTree struct {
+	head  *elemTree
+	grows bool
+	Quant int
+}
+
+type elemTree struct {
+	Elem    RecordString
+	Left    *elemTree
+	Right   *elemTree
+	Balance int
+}
+
+func (tr *AVLTree) Push(new_elem RecordString) {
+	tr.Quant++
+	tr.add(&tr.head, new_elem)
+}
+
+func (tr *AVLTree) add(p **elemTree, new_elem RecordString) {
+	if (*p) == nil {
+		(*p) = new(elemTree)
+		(*p).Elem = new_elem
+		(*p).Balance = 0
+		tr.grows = true
+	} else {
+		if tr.less(new_elem, (*p).Elem) {
+			tr.add(&(*p).Left, new_elem)
+			if tr.grows {
+				if (*p).Balance > 0 {
+					(*p).Balance = 0
+					tr.grows = false
+				} else if (*p).Balance == 0 {
+					(*p).Balance = -1
+				} else {
+					if (*p).Left.Balance < 0 {
+						tr.turnLL(p)
+						tr.grows = false
+					} else {
+						tr.turnLR(p)
+						tr.grows = false
+					}
+				}
+			}
+		} else {
+			tr.add(&(*p).Right, new_elem)
+			if tr.grows {
+				if (*p).Balance < 0 {
+					(*p).Balance = 0
+					tr.grows = false
+				} else if (*p).Balance == 0 {
+					(*p).Balance = 1
+				} else {
+					if (*p).Right.Balance > 0 {
+						tr.turnRR(p)
+						tr.grows = false
+					} else {
+						tr.turnRL(p)
+						tr.grows = false
+					}
+				}
+			}
+		}
+	}
+}
+
+func (tr *AVLTree) turnLL(p **elemTree) {
+	q := (*p).Left
+	q.Balance = 0
+	(*p).Balance = 0
+	(*p).Left = q.Right
+	q.Right = (*p)
+	*p = q
+}
+
+func (tr *AVLTree) turnLR(p **elemTree) {
+	q := (*p).Left
+	r := q.Right
+	if r.Balance < 0 {
+		(*p).Balance = 1
+	} else {
+		(*p).Balance = 0
+	}
+	if r.Balance > 0 {
+		q.Balance = -1
+	} else {
+		q.Balance = 0
+	}
+	r.Balance = 0
+	(*p).Left = r.Right
+	q.Right = r.Left
+	r.Left = q
+	r.Right = (*p)
+	*p = r
+}
+
+func (tr *AVLTree) turnRR(p **elemTree) {
+	q := (*p).Right
+	q.Balance = 0
+	(*p).Balance = 0
+	(*p).Right = q.Left
+	q.Left = (*p)
+	*p = q
+}
+
+func (tr *AVLTree) turnRL(p **elemTree) {
+	q := (*p).Right
+	r := q.Left
+	if r.Balance > 0 {
+		(*p).Balance = -1
+	} else {
+		(*p).Balance = 0
+	}
+	if r.Balance < 0 {
+		q.Balance = 1
+	} else {
+		q.Balance = 0
+	}
+	r.Balance = 0
+	(*p).Right = r.Left
+	q.Left = r.Right
+	r.Left = (*p)
+	r.Right = q
+	(*p) = r
+}
+
+func (tr *AVLTree) less(rs1 RecordString, rs2 RecordString) bool {
+	var buff_rs1, buff_rs2 string
+	var space int
+	var i int
+	for space < 2 && i < len(rs1.Title) {
+		if rs1.Title[i] == byte(32) {
+			space++
+		}
+		i++
+	}
+	buff_rs1 = string(rs1.Title[i:])
+	i = 0
+	space = 0
+	for space < 2 && i < len(rs2.Title) {
+		if rs2.Title[i] == byte(32) {
+			space++
+		}
+		i++
+	}
+	buff_rs2 = string(rs2.Title[i:])
+	return buff_rs1 < buff_rs2
+}
+
+func (tr *AVLTree) RoundTreeLR(bd []RecordString) { //left-right
+	if len(bd) < tr.Quant {
+		bd = make([]RecordString, tr.Quant)
+	}
+	var i int
+	tr.roundTreeRecureLR(tr.head, bd, &i)
+}
+
+func (tr *AVLTree) roundTreeRecureLR(pointer *elemTree, bd []RecordString, i *int) {
+	if pointer == nil {
+		return
+	}
+	tr.roundTreeRecureLR(pointer.Left, bd, i)
+	bd[(*i)] = pointer.Elem
+	(*i)++
+	tr.roundTreeRecureLR(pointer.Right, bd, i)
+}
+
+func (tr *AVLTree) RoundTreeTD(bd []RecordString) { //top-down
+	if len(bd) < tr.Quant {
+		bd = make([]RecordString, tr.Quant)
+	}
+	var i int
+	tr.roundTreeRecureTD(tr.head, bd, &i)
+}
+
+func (tr *AVLTree) roundTreeRecureTD(pointer *elemTree, bd []RecordString, i *int) {
+	if pointer == nil {
+		return
+	}
+	bd[(*i)] = pointer.Elem
+	(*i)++
+	tr.roundTreeRecureTD(pointer.Left, bd, i)
+	tr.roundTreeRecureTD(pointer.Right, bd, i)
 }

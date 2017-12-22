@@ -43,7 +43,7 @@ td {
 
 .panel {
 	text-align: center;
-	margin-top: 50px;
+	margin-top: 10px;
 }
 
 .bdtable {
@@ -59,7 +59,7 @@ body {
 	height: 100%;
 	margin: 0;
 	padding: 0;
-	overflow: hidden;
+	/*overflow: hidden;*/
 	background: linear-gradient(230deg, #94D798 0%, #EFA6A4 100%);
 }
 
