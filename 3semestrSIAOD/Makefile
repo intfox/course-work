@@ -2,6 +2,7 @@ all: clear
 	mkdir -p bin
 	go build -o bin/main
 	GOOS=windows GOARCH=amd64 go build -o bin/main.exe main.go
+	GOOS=windows GOARCH=386 go build -o bin/main.exe main.go
 	mkdir -p bin/html
 	mkdir -p bin/resourse
 	cp html/* bin/html
