@@ -1,0 +1,35 @@
+{{ define "code" }}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Code</title>
+	<link rel="stylesheet" href="/resourse/style.css">
+</head>
+<body>
+	<div class="bdtable">
+		<table>
+			<tr>
+				<th width="100px">Код символа</th>
+				<th width="100px">Двоичный код</th>
+				</tr>
+			{{ range $key, $value := . }}
+				<tr>
+					<td>{{ $key }}</td>
+					<td>{{ $value }}</td>
+				</tr>
+			{{ end }}
+			</table>
+			<br>
+		<form action="/arr" id="ArrayForm"></form>
+		<form action="/treeLR" id="TreeFormLR"></form>
+		<form action="/treeTD" id="TreeFormTD"></form>
+		<form action="/code" id="codeForm"></form>
+		<button class="button" form="ArrayForm">Массив</button>
+		<button class="button" form="TreeFormLR">АВЛ дерево(справа налево)</button>
+		<button class="button" form="TreeFormTD">АВЛ дерево(сверху вниз)</button>
+		<button class="button" form="codeForm">Словарь кодирования</button>
+	</div>
+</body>
+</html>
+
+{{ end }}

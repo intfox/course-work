@@ -3,7 +3,9 @@ package base
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"os"
+	"strconv"
 )
 
 type Key func(Record, int) int
@@ -17,7 +19,7 @@ type KeySearch interface {
 type FamilyKeySearch []RecordString
 
 func (fks FamilyKeySearch) Less(rs1 int, rs2 string) bool {
-	var buff_rs1, buff_rs2 string
+	var buff_rs1, buff_rs2, buff_rs1_b string
 	var space int
 	var i int
 	for space < 2 {
@@ -26,7 +28,13 @@ func (fks FamilyKeySearch) Less(rs1 int, rs2 string) bool {
 		}
 		i++
 	}
-	buff_rs1 = string(fks[rs1].Title[i:])
+	buff_rs1_b = string(fks[rs1].Title[i:])
+	for i = len(buff_rs1_b) - 1; i > 0; i-- {
+		if buff_rs1_b[i] != byte(32) {
+			break
+		}
+	}
+	buff_rs1 = string(buff_rs1_b[:i+1])
 	i = 0
 	space = 0
 	for space < 2 {
@@ -44,7 +52,14 @@ func (fks FamilyKeySearch) Less(rs1 int, rs2 string) bool {
 }
 
 func (fks FamilyKeySearch) Equal(rs1 int, rs2 string) bool {
-	if fks[rs1].Title == rs2 {
+	var i int
+	for i = len(fks[rs1].Title) - 1; i > 0; i-- {
+		if fks[rs1].Title[i] != byte(32) {
+			break
+		}
+	}
+	buff := string(fks[rs1].Title[:i+1])
+	if buff == rs2 {
 		return true
 	} else {
 		return false
@@ -108,6 +123,7 @@ func (s Spis) Print() {
 }
 
 func DigitalSort(key Key, spis Spis, keyNumb int) {
+	fmt.Println("digital sort")
 	Q := make([]Spis, 256)
 	for i := 0; i < 256; i++ {
 		Q[i].Init()
@@ -171,6 +187,7 @@ type RecordString struct {
 }
 
 func Read() []Record {
+	fmt.Println("read file")
 	const sizeBD = 4000
 	file, err := os.Open("testBase1.dat")
 	if err != nil {
@@ -193,6 +210,7 @@ func (rec Record) ConvertStructToString() RecordString {
 }
 
 func BinSearch(array KeySearch, searchElem string) (bool, []RecordString) {
+	fmt.Println("bin search")
 	L := 0
 	R := array.Len()
 	var m int
@@ -208,8 +226,8 @@ func BinSearch(array KeySearch, searchElem string) (bool, []RecordString) {
 	for array.Equal(m_last, searchElem) {
 		m_last++
 	}
-	if array.Equal(m, searchElem) {
-		return true, array.Section(m, m_last)
+	if array.Equal(m+1, searchElem) {
+		return true, array.Section(m+1, m_last)
 	} else {
 		return false, make([]RecordString, 1)
 	}
@@ -412,4 +430,53 @@ func (tr *AVLTree) roundTreeRecureTD(pointer *elemTree, bd []RecordString, i *in
 	(*i)++
 	tr.roundTreeRecureTD(pointer.Left, bd, i)
 	tr.roundTreeRecureTD(pointer.Right, bd, i)
+}
+
+//Кодирование
+func ReadByteFile() []byte {
+	file, err := os.Open("testBase1.dat")
+	if err != nil {
+		fmt.Println("error: file testBase1.dat not found")
+	}
+	fileInfo, _ := os.Stat("testBase1.dat")
+	buff := make([]byte, fileInfo.Size())
+	err = binary.Read(file, binary.LittleEndian, &buff)
+	return buff
+}
+
+func InCode(array []byte) map[byte]string {
+	fmt.Println("code file")
+	dict := make(map[byte]int)
+	for i := range array {
+		if _, exist := dict[array[i]]; exist {
+			dict[array[i]] += 1
+		} else {
+			dict[array[i]] = 1
+		}
+	}
+	dict_p := make(map[byte]float64)
+	for i, quant := range dict {
+		dict_p[i] = float64(quant) / float64(len(array))
+	}
+	dict_q := make(map[byte]float64)
+	var q_buff float64
+	for i := range dict_p {
+		dict_q[i] = q_buff + dict_p[i]/2
+		q_buff += dict_p[i]
+	}
+	dict_codeWord := make(map[byte]string)
+	for i := range dict_q {
+		dict_codeWord[i] = codeWord(dict_q[i], (-int(math.Log2(dict_p[i])))+1)
+	}
+	return dict_codeWord
+}
+
+func codeWord(Q float64, L int) string {
+	var result string
+	for i := 0; i < L; i++ {
+		Q -= float64(int(Q))
+		Q *= 2
+		result += strconv.Itoa(int(Q))
+	}
+	return result
 }

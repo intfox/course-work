@@ -18,6 +18,7 @@ var pageNotFound, err = template.ParseFiles("html/pageNotFound.html")
 var bdTree base.AVLTree
 var tree_status bool
 var bdTreeArr []base.RecordString
+var dict_code map[byte]string
 
 type RetDat struct {
 	RetBD           []base.RecordString
@@ -29,6 +30,7 @@ func indexHendler(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("html/index.html")
 	if err != nil {
 		fmt.Fprint(w, "error: index.html")
+		return
 	}
 	t.ExecuteTemplate(w, "index", nil)
 }
@@ -37,6 +39,7 @@ func pageHendler(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("html/page.html")
 	if err != nil {
 		fmt.Fprint(w, "error: page.html")
+		return
 	}
 	//	bd := base.Read()
 	var ret_dat RetDat
@@ -110,16 +113,30 @@ func arrHendler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/page/0", 302)
 }
 
+func codeHendler(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("html/code.html")
+	if err != nil {
+		fmt.Fprint(w, "error: code.html")
+		fmt.Fprint(w, "err: ", err)
+		return
+	}
+	t.ExecuteTemplate(w, "code", dict_code)
+}
+
 func Init() {
+	fmt.Println("Init")
 	bd = base.Read()
 	bdSpis.Init()
 	for i := 0; i < numb_elem_bd; i++ {
 		bdSpis.Push(bd[i])
 	}
+	fmt.Println("init AVL-tree")
 	for i := range bd {
 		bdTree.Push(bd[i].ConvertStructToString())
 	}
 	bdTreeArr = make([]base.RecordString, numb_elem_bd)
+	bdByte := base.ReadByteFile()
+	dict_code = base.InCode(bdByte)
 	http.HandleFunc("/", indexHendler)
 	http.HandleFunc("/page/", pageHendler)
 	http.HandleFunc("/page/sort", sortHendler)
@@ -127,7 +144,9 @@ func Init() {
 	http.HandleFunc("/treeLR", treeHendlerLR)
 	http.HandleFunc("/treeTD", treeHendlerTD)
 	http.HandleFunc("/arr", arrHendler)
+	http.HandleFunc("/code", codeHendler)
 	http.Handle("/resourse/", http.StripPrefix("/resourse/", http.FileServer(http.Dir("./resourse/"))))
+	fmt.Println("Listen port 80")
 	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		fmt.Println("error listen: ", err)
