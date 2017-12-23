@@ -146,8 +146,8 @@ func Init() {
 	http.HandleFunc("/arr", arrHendler)
 	http.HandleFunc("/code", codeHendler)
 	http.Handle("/resourse/", http.StripPrefix("/resourse/", http.FileServer(http.Dir("./resourse/"))))
-	fmt.Println("Listen port 80")
-	err := http.ListenAndServe(":80", nil)
+	fmt.Println("Listen port 9001")
+	err := http.ListenAndServe(":9001", nil)
 	if err != nil {
 		fmt.Println("error listen: ", err)
 	}
