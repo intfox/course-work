@@ -1,0 +1,3 @@
+[submodule "4semestrVP/AudioPlayer"]
+	path = 4semestrVP/AudioPlayer
+	url = https://github.com/intfox/AudioPlayer
