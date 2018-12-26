@@ -4,7 +4,7 @@
 
 // +build windows
 
-package main
+package service
 
 import (
 	"fmt"
@@ -54,7 +54,7 @@ func (m *myservice) Execute(args []string, r <-chan svc.ChangeRequest, changes c
 	}
 }
 
-func runService(name string, isDebug bool) {
+func RunService(name string, isDebug bool) {
 	var err error
 	if isDebug {
 		elog = debug.New(name)

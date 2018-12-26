@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/intfox/course-work/5semestrOS/service"
 	"golang.org/x/sys/windows/svc"
 )
 
@@ -42,7 +43,7 @@ func main() {
 		log.Fatalf("failed to determine if we are running in an interactive session: %v", err)
 	}
 	if !isIntSess {
-		runService(svcName, false)
+		service.RunService(svcName, false)
 		return
 	}
 
@@ -55,20 +56,20 @@ func main() {
 
 	switch cmd {
 	case "debug":
-		runService(svcName, true)
+		service.RunService(svcName, true)
 		return
 	case "install":
-		err = installService(svcName, "rest task manager")
+		err = service.InstallService(svcName, "rest task manager")
 	case "remove":
-		err = removeService(svcName)
+		err = service.RemoveService(svcName)
 	case "start":
-		err = startService(svcName, *port)
+		err = service.StartService(svcName, *port)
 	case "stop":
-		err = controlService(svcName, svc.Stop, svc.Stopped)
+		err = service.ControlService(svcName, svc.Stop, svc.Stopped)
 	case "pause":
-		err = controlService(svcName, svc.Pause, svc.Paused)
+		err = service.ControlService(svcName, svc.Pause, svc.Paused)
 	case "continue":
-		err = controlService(svcName, svc.Continue, svc.Running)
+		err = service.ControlService(svcName, svc.Continue, svc.Running)
 	default:
 		usage(fmt.Sprintf("invalid command %s", cmd))
 	}
