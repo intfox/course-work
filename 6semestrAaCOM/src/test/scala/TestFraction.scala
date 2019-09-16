@@ -2,7 +2,7 @@ import org.scalatest.FlatSpec
 
 
 class TestFraction extends FlatSpec {
-  import Fraction.fractionalFraction
+  import Fraction.Implicits.fractional
   import Fractional.Implicits._
 
   "1/2 + 1/2" should "1/1" in {
