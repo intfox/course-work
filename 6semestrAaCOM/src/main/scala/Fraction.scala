@@ -2,11 +2,10 @@ case class Fraction(num: Int, denom: Int) {
   override def toString: String = s"$num/$denom"
 }
 
-
 object Fraction {
   def apply(num: Int, denom: Int): Fraction = {
-    val gcdFraction = gcd(num, denom)
-    new Fraction(num/gcdFraction, denom/gcdFraction)
+    val gcdFraction = math.abs(gcd(num, denom))
+    new Fraction((if (denom < 0) -num else num)/gcdFraction, (if (denom < 0) -denom else denom)/gcdFraction)
   }
 
   def apply(num: Int): Fraction = new Fraction(num, 1)
@@ -23,10 +22,9 @@ object Fraction {
       override def toLong(x: Fraction): Long = toInt(x).toLong
       override def toFloat(x: Fraction): Float = x.num.toFloat / x.denom.toFloat
       override def toDouble(x: Fraction): Double = x.num.toDouble / x.denom.toDouble
-      override def compare(x: Fraction, y: Fraction): Int = toInt(minus(x, y))
+      override def compare(x: Fraction, y: Fraction): Int = x.num * y.denom - y.num * x.denom
     }
   }
-
 
   @scala.annotation.tailrec
   private def gcd(a: Int, b: Int): Int = b match {
