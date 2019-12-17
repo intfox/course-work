@@ -1,5 +1,7 @@
 import org.scalatest.FreeSpec
 
+import cats.effect.IO
+
 class StringsGrammaticSpec extends FreeSpec {
     object A extends NonTerminal {
         val render = "A"
@@ -43,6 +45,21 @@ class StringsGrammaticSpec extends FreeSpec {
         val stringsGrammatic = StringsGrammatic(testGrammatic)
         "test generate min 0 max 10" in {
             val test = stringsGrammatic.flatMap( _.apply(0, 10) ).unsafeRunSync()
+            assert((List("aaacba", "aabcba", "aaccba") ++ bruteForce(List('a', 'b', 'c'), 4).map( "aa"+ _ +"cba" )).sorted == test.sorted)
+        }
+        "test generate from cache" in {
+            val timeMills = IO( System.currentTimeMillis() )
+            val test = (for{
+                sg <- stringsGrammatic
+                start1 <- timeMills
+                _ <- sg(0, 10)
+                stop1 <- timeMills
+                _ <- IO(info(s"first generate: ${stop1 - start1} millis"))
+                start2 <- timeMills
+                test <- sg(0, 10)
+                stop2 <- timeMills
+                _ <- IO(info(s"second generate: ${stop2 - start2} millis"))
+            } yield (test)).unsafeRunSync()
             assert((List("aaacba", "aabcba", "aaccba") ++ bruteForce(List('a', 'b', 'c'), 4).map( "aa"+ _ +"cba" )).sorted == test.sorted)
         }
     }
