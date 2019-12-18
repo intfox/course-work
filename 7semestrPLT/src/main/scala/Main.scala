@@ -1,11 +1,101 @@
-import cats.effect.IO
+import cats.effect.{ IO, ExitCode, IOApp }
 import cats.implicits._
 import cats.{ UnorderedTraverse, CommutativeApplicative, Applicative }
 import cats.effect.concurrent.Ref
 
+import org.http4s._
+import org.http4s.dsl.io._
+import org.http4s.server.staticcontent._
+import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.implicits._
+
+import java.util.concurrent.Executors
+
 import scala.concurrent.ExecutionContext
 
-object Main extends App {
+object Main extends IOApp {
+
+  val blockingEC = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
+
+  object AlphabetMatcher extends QueryParamDecoderMatcher[String]("alphabet")
+  object InitStrMatcher extends QueryParamDecoderMatcher[String]("initStr")
+  object FinalStrMatcher extends QueryParamDecoderMatcher[String]("finalStr")
+  object MultiplicityMatcher extends QueryParamDecoderMatcher[Int]("multiplicity")
+  object MinSizeMatcher extends QueryParamDecoderMatcher[Int]("minSize")
+  object MaxSizeMatcher extends QueryParamDecoderMatcher[Int]("maxSize")
+
+  case class AppState(alphabet: Option[List[Char]] = None, initStr: Option[String] = None, finalStr: Option[String] = None, multiplicity: Option[Int] = None, typeGrammatic: TypeRegularGrammatic = RightLinear, regularGrammatic: Option[List[(NonTerminal, List[Symbol])]] = None, stringsGrammatic: Option[StringsGrammatic] = None, minSize: Option[Int] = None, maxSize: Option[Int] = None)
+
+  def alphabetFromString(str: String): Either[String, List[Char]] = Right(str.toList)
+
+  def routes(refAppState: Ref[IO, Map[String, AppState]]) = HttpRoutes.of[IO] {
+    case request @ GET -> Root => StaticFile.fromResource("/index.html", blockingEC, Some(request)).getOrElseF(NotFound())
+    case POST -> Root / id / "set" :? AlphabetMatcher(alphabet) => Ok(alphabetFromString(alphabet) match {
+      case Right(list) => refAppState.get.flatMap{ _.get( id ) match {
+        case Some(_) => refAppState.update( map => map.updated(id, map(id).copy(alphabet = Some(list))) ).map( _ => "OK" )
+        case None => IO.pure(s"Not found by id $id")
+      }}
+      case Left(error) => IO.pure(error)
+    })
+    case POST -> Root / id / "set" :? InitStrMatcher(str) => Ok(refAppState.get.flatMap{ _.get( id ) match {
+        case Some(_) => refAppState.update( map => map.updated(id, map(id).copy(initStr = Some(str))) ).map( _ => "OK" )
+        case None => IO.pure(s"Not found by id $id")
+      }})
+    case POST -> Root / id / "set" :? FinalStrMatcher(str) => Ok(refAppState.get.flatMap{ _.get( id ) match {
+      case Some(_) => refAppState.update( map => map.updated(id, map(id).copy(finalStr = Some(str))) ).map( _ => "OK" )
+      case None => IO.pure(s"Not found by id $id")
+    }})
+    case POST -> Root / "create" => Ok(
+      for {
+        newId <- IO{ java.util.UUID.randomUUID().toString }
+        _ <- IO{ println(s"generate id: $newId") }
+        _ <- refAppState.update( map => map + (newId -> AppState()))
+      } yield newId)
+    case POST -> Root / id / "set" :? MultiplicityMatcher(multiplicity) => Ok(refAppState.get.flatMap{ _.get( id ) match {
+      case Some(_) => refAppState.update( map => map.updated(id, map(id).copy(multiplicity = Some(multiplicity))) ).map( _ => "OK" )
+      case None => IO.pure(s"Not found by id $id")
+    }})
+    case POST -> Root / id / "generateGrammatic" => Ok(refAppState.get.flatMap{ _.get(id) match {
+      case Some(state) => (for{
+        alphabet <- state.alphabet
+        initStr <- state.initStr
+        finalStr <- state.finalStr
+        multiplicity <- state.multiplicity
+        typeGrammatic = state.typeGrammatic
+        rg = regularGrammatic(alphabet, initStr, finalStr, multiplicity, typeGrammatic)
+      } yield (StringsGrammatic(rg).flatMap( sg => refAppState.update( stateApp =>  stateApp.updated( id, stateApp(id).copy( regularGrammatic = Some(rg), stringsGrammatic = Some(sg) ) )).map(_ => rg.map(a => s"${a._1.render} -> ${a._2.map(_.render).mkString("")}").mkString("\n"))))).getOrElse(IO.pure("Not all field input!"))
+      case None => IO.pure(s"not found id: $id")
+    }})
+    case POST -> Root / id / "set" :? MinSizeMatcher(size) => Ok(refAppState.get.flatMap{ _.get( id ) match {
+      case Some(_) => refAppState.update( map => map.updated(id, map(id).copy(minSize = Some(size))) ).map( _ => "OK" )
+      case None => IO.pure(s"Not found by id $id")
+    }})
+    case POST -> Root / id / "set" :? MaxSizeMatcher(size) => Ok(refAppState.get.flatMap{ _.get( id ) match {
+      case Some(_) => refAppState.update( map => map.updated(id, map(id).copy(maxSize = Some(size))) ).map( _ => "OK" )
+      case None => IO.pure(s"Not found by id $id")
+    }})
+    case GET -> Root / id / "generateStr" => Ok(refAppState.get.flatMap{ _.get( id ) match {
+      case Some(state) => (for {
+        sg <- state.stringsGrammatic
+        min <- state.minSize
+        max <- state.maxSize 
+      } yield (sg(min, max).map( _.mkString("\n")))).getOrElse(IO.pure("Not all!"))
+      case None => IO.pure(s"Not found by id $id")
+    }})
+  }.orNotFound
+
+  def run(args: List[String]): IO[ExitCode] = {
+    Ref.of[IO, Map[String, AppState]](Map.empty).flatMap{ appState => 
+      BlazeServerBuilder[IO]
+      .bindHttp(8080, "localhost")
+      .withHttpApp(routes(appState))
+      .serve
+      .compile
+      .drain
+      .as(ExitCode.Success)
+    }
+  }
+    
 
   lazy val listNonTerminalSymbol: Stream[NonTerminal] = new NonTerminal{ val render = "A" } #:: listNonTerminalSymbol.map( prevSymbol => new NonTerminal{ val render = prevSymbol.render.init + (prevSymbol.render.last + 1).toChar } )
   

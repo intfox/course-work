@@ -11,3 +11,6 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "org.http4s" %% "http4s-blaze-client" % http4sVersion
 )
+
+assemblyJarName in assembly := "PLT-assembly.jar"
+mainClass in assembly := Some("Main")

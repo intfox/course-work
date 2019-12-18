@@ -63,4 +63,13 @@ class StringsGrammaticSpec extends FreeSpec {
             assert((List("aaacba", "aabcba", "aaccba") ++ bruteForce(List('a', 'b', 'c'), 4).map( "aa"+ _ +"cba" )).sorted == test.sorted)
         }
     }
+    val testHeavyGrammatic = Main.regularGrammatic(List('a', 'b', 'c', 'd', 'f', 'm'), "aa", "cba", 2, RightLinear)
+    s"from grammatic \n${testHeavyGrammatic.map(a => s"${a._1.render} -> ${a._2.map(_.render).mkString("")}").mkString("\n")}" - {
+        val stringsGrammatic = StringsGrammatic(testHeavyGrammatic)
+        "test generate min 0 max 12" in {
+            val test = stringsGrammatic.flatMap( _.apply(0, 12) ).unsafeRunSync()
+            info(s"generate ${test.size} strings!")
+            assert(true) // то что мы уже сдесь, это уже достижение :)
+        }
+    }
 }

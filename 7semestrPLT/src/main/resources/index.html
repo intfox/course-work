@@ -1,0 +1,99 @@
+<html>
+    <head><title>PLT</title></head> 
+    <body>
+        <input type="text" id="id">ID<input type="button" value="create" onclick="generateId()"><br>
+        <input type="text" id="alphabet"> alphabet <a id="alphabet_message"></a> <br>
+        <input type="text" id="firstStr"> first str <a id="firstStr_message"></a> <br>
+        <input type="text" id="lastStr"> last str <a id="lastStr_message"></a> <br>
+        <input type="number" id="multiplicity"> multiplicity <a id="multiplicity_message"></a><br>
+        <select>
+            <option>Right Linear</option>
+            <option>Left Linear</option>
+        </select> <br>
+        <input type="button" value="OK" onclick="test()"> <br>
+        <br>
+        <input type="number" id="minSize"> min size <a id="minSize_message"></a><input type="number" id="maxSize"> max size <a id="maxSize_message"></a><br>
+        <input type="button" value="Generate" onclick="generateStr()"> 
+        <textarea id="area"></textarea> 
+        <script>
+            function generateStr() {
+                if(document.getElementById('id').value != "") {
+                    if(document.getElementById("minSize").value != "") {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '/'+document.getElementById("id").value+'/set?minSize='+document.getElementById("minSize").value, true)
+                        xhr.onload = () => {
+                            document.getElementById("minSize_message").value = xhr.responseText 
+                        }
+                        xhr.send()
+                    }
+                    if(document.getElementById("maxSize").value != "") {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '/'+document.getElementById("id").value+'/set?maxSize='+document.getElementById("maxSize").value, true)
+                        xhr.onload = () => {
+                            document.getElementById("maxSize_message").value = xhr.responseText 
+                        }
+                        xhr.send()
+                    }
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', '/'+document.getElementById("id").value+'/generateStr', true)
+                    xhr.onload = () => {
+                        document.getElementById("area").value = xhr.responseText
+                    }
+                    xhr.send()
+                }
+                
+            }
+            function generateId() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/create', true);
+                xhr.onload = () => {
+                    document.getElementById("id").value = xhr.responseText
+                }
+                xhr.send()
+            }
+            function test() { 
+                var alphabet = document.getElementById("alphabet")
+                if(alphabet.value != "" && document.getElementById("id").value != "") {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/'+document.getElementById("id").value+'/set?alphabet='+alphabet.value, true);
+                    xhr.onload = () => {
+                        document.getElementById("alphabet_message").textContent = xhr.responseText
+                    }
+                    xhr.send()
+                }
+                if(document.getElementById("firstStr").value != "" && document.getElementById("id").value != "") {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/'+document.getElementById('id').value+'/set?initStr='+document.getElementById("firstStr").value, true)
+                    xhr.onload = () => {
+                        document.getElementById("firstStr_message").textContent = xhr.responseText
+                    }
+                    xhr.send()
+                }
+                if(document.getElementById("lastStr").value != "" && document.getElementById("id").value != "") {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/'+document.getElementById('id').value+'/set?finalStr='+document.getElementById("lastStr").value, true)
+                    xhr.onload = () => {
+                        document.getElementById("lastStr_message").textContent = xhr.responseText
+                    }
+                    xhr.send()
+                }
+                if(document.getElementById("multiplicity").value != "" && document.getElementById("id").value != "") {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/'+document.getElementById('id').value+'/set?multiplicity='+document.getElementById("multiplicity").value, true)
+                    xhr.onload = () => {
+                        document.getElementById("multiplicity_message").textContent = xhr.responseText
+                    }
+                    xhr.send()
+                }
+                if(alphabet.value != "" && document.getElementById("id").value != "" && document.getElementById("multiplicity").value != "" && document.getElementById("lastStr").value != "" && document.getElementById("firstStr").value != "") {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POSt', '/'+document.getElementById("id").value+'/generateGrammatic', true)
+                    xhr.onload = () => {
+                        document.getElementById("area").value = xhr.responseText
+                    }
+                    xhr.send()
+                }
+            }
+        </script>
+    </body>
+</html>
