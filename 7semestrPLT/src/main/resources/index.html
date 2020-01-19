@@ -1,98 +1,125 @@
 <html>
-    <head><title>PLT</title></head> 
+    <head>
+        <title>PLT</title>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+        <script
+                src="https://code.jquery.com/jquery-3.1.1.min.js"
+                integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+                crossorigin="anonymous"></script>
+        <script src="semantic/dist/semantic.min.js"></script>
+    </head>
     <body>
-        <input type="text" id="id">ID<input type="button" value="create" onclick="generateId()"><br>
-        <input type="text" id="alphabet"> alphabet <a id="alphabet_message"></a> <br>
-        <input type="text" id="firstStr"> first str <a id="firstStr_message"></a> <br>
-        <input type="text" id="lastStr"> last str <a id="lastStr_message"></a> <br>
-        <input type="number" id="multiplicity"> multiplicity <a id="multiplicity_message"></a><br>
-        <select>
-            <option>Right Linear</option>
-            <option>Left Linear</option>
-        </select> <br>
-        <input type="button" value="OK" onclick="test()"> <br>
-        <br>
-        <input type="number" id="minSize"> min size <a id="minSize_message"></a><input type="number" id="maxSize"> max size <a id="maxSize_message"></a><br>
-        <input type="button" value="Generate" onclick="generateStr()"> 
-        <textarea id="area"></textarea> 
+        <div class="main ui container">
+            <div class="ui form">
+                <div class="field">
+                    <input type="text" placeholder="alphabet" id="alphabet">
+                    <div class="ui pointing red basic label" id="alphabet_message" style="display: None">
+                    </div>
+                </div>
+                <div class="field">
+                    <input type="text" placeholder="first str" id="initStr">
+                    <div class="ui pointing red basic label" id="initStr_message" style="display: None">
+                    </div>
+                </div>
+                <div class="field">
+                    <input type="text" placeholder="last str" id="finalStr">
+                    <div class="ui pointing red basic label" id="finalStr_message" style="display: None">
+                    </div>
+                </div>
+                <div class="field">
+                    <input type="number" placeholder="multiplicity" id="multiplicity">
+                    <div class="ui pointing red basic label" id="multiplicity_message" style="display: None">
+                    </div>
+                </div>
+                <div class="field">
+                    <select id="typeRegular">
+                        <option value="rightLinear">Right Linear</option>
+                        <option value="leftLinear">Left Linear</option>
+                    </select>
+                </div>
+                <div class="ui button" onclick="test()">OK</div>
+                <div class="two fields">
+                    <div class="field">
+                        <input type="number" id="minSize">
+                        <div class="ui pointing red basic label" id="minSize_message" style="display: None">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <input type="number" id="maxSize">
+                        <div class="ui pointing red basic label" id="maxSize_message" style="display: None">
+                        </div>
+                    </div>
+                </div>
+                <div class="ui button" onclick="generateStr()">Generate</div>
+                <textarea id="area"></textarea>
+            </div>
+        </div>
+
+
         <script>
             function generateStr() {
-                if(document.getElementById('id').value != "") {
-                    if(document.getElementById("minSize").value != "") {
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('POST', '/'+document.getElementById("id").value+'/set?minSize='+document.getElementById("minSize").value, true)
-                        xhr.onload = () => {
-                            document.getElementById("minSize_message").value = xhr.responseText 
-                        }
-                        xhr.send()
-                    }
-                    if(document.getElementById("maxSize").value != "") {
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('POST', '/'+document.getElementById("id").value+'/set?maxSize='+document.getElementById("maxSize").value, true)
-                        xhr.onload = () => {
-                            document.getElementById("maxSize_message").value = xhr.responseText 
-                        }
-                        xhr.send()
-                    }
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('GET', '/'+document.getElementById("id").value+'/generateStr', true)
-                    xhr.onload = () => {
-                        document.getElementById("area").value = xhr.responseText
-                    }
-                    xhr.send()
-                }
-                
-            }
-            function generateId() {
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', '/create', true);
+                if(document.getElementById("minSize").value < 1) {
+                    document.getElementById("minSize_message").style.display = "table"
+                    document.getElementById("minSize_message").innerText = "Not input!"
+                    return
+                } else document.getElementById("minSize_message").style.display = "none"
+
+                if(document.getElementById("maxSize").value < 1) {
+                    document.getElementById("maxSize_message").style.display = "table"
+                    document.getElementById("maxSize_message").innerText = "Not input!"
+                    return
+                } else document.getElementById("maxSize_message").style.display = "none"
+
+                let xhr = new XMLHttpRequest();
+                xhr.open('GET', '/stringsGrammar?'+'grammar='+document.getElementById("area").value.split("\n").reduce((a, b) => {return a + "ENDLINE" + b})+'&'+'minSize='+document.getElementById("minSize").value+'&'+'maxSize='+document.getElementById("maxSize").value)
                 xhr.onload = () => {
-                    document.getElementById("id").value = xhr.responseText
+                    if(xhr.responseText.length > 5000) document.getElementById("area").value = xhr.responseText.substr(0, 5000) + "...and other"
+                    else document.getElementById("area").value = xhr.responseText
                 }
                 xhr.send()
             }
-            function test() { 
-                var alphabet = document.getElementById("alphabet")
-                if(alphabet.value != "" && document.getElementById("id").value != "") {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POST', '/'+document.getElementById("id").value+'/set?alphabet='+alphabet.value, true);
-                    xhr.onload = () => {
-                        document.getElementById("alphabet_message").textContent = xhr.responseText
+            function test() {
+                let xhr = new XMLHttpRequest();
+                let setAlphabet =  (new Set(document.getElementById("alphabet").value))
+                if(document.getElementById("alphabet").value.length > setAlphabet.size) {
+                    document.getElementById("alphabet_message").style.display = "table"
+                    document.getElementById("alphabet_message").innerText = "Character repeated!"
+                    return
+                } else if(document.getElementById("alphabet").value.length < 1) {
+                    document.getElementById("alphabet_message").style.display = "table"
+                    document.getElementById("alphabet_message").innerText = "Alphabet not input!"
+                    return
+                } else document.getElementById("alphabet_message").style.display = "none"
+
+                if(document.getElementById("multiplicity").value < 1) {
+                    document.getElementById("multiplicity_message").style.display = "table"
+                    document.getElementById("multiplicity_message").innerText = "Not input!"
+                    return
+                } else document.getElementById("multiplicity_message").style.display = "none"
+
+                for(let value of document.getElementById("initStr").value){
+                    if(!setAlphabet.has(value)) {
+                        document.getElementById("initStr_message").style.display = "table"
+                        document.getElementById("initStr_message").innerText = "Symbol " + value + " missing in alphabet!"
+                        return
                     }
-                    xhr.send()
                 }
-                if(document.getElementById("firstStr").value != "" && document.getElementById("id").value != "") {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POST', '/'+document.getElementById('id').value+'/set?initStr='+document.getElementById("firstStr").value, true)
-                    xhr.onload = () => {
-                        document.getElementById("firstStr_message").textContent = xhr.responseText
+                document.getElementById("initStr_message").style.display = "none"
+
+                for(let value of document.getElementById("finalStr").value){
+                    if(!setAlphabet.has(value)) {
+                        document.getElementById("finalStr_message").style.display = "table"
+                        document.getElementById("finalStr_message").innerText = "Symbol " + value + " missing in alphabet!"
+                        return
                     }
-                    xhr.send()
                 }
-                if(document.getElementById("lastStr").value != "" && document.getElementById("id").value != "") {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POST', '/'+document.getElementById('id').value+'/set?finalStr='+document.getElementById("lastStr").value, true)
-                    xhr.onload = () => {
-                        document.getElementById("lastStr_message").textContent = xhr.responseText
-                    }
-                    xhr.send()
+                document.getElementById("finalStr_message").style.display = "none"
+
+                xhr.open('GET', '/regularGrammar?' + 'alphabet=' + document.getElementById("alphabet").value + '&initStr=' + document.getElementById("initStr").value + '&finalStr=' + document.getElementById("finalStr").value + '&multiplicity=' + document.getElementById("multiplicity").value + '&typeRegularGrammar=' + document.getElementById("typeRegular").selectedOptions[0].value )
+                xhr.onload = () => {
+                    document.getElementById("area").value = xhr.responseText
                 }
-                if(document.getElementById("multiplicity").value != "" && document.getElementById("id").value != "") {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POST', '/'+document.getElementById('id').value+'/set?multiplicity='+document.getElementById("multiplicity").value, true)
-                    xhr.onload = () => {
-                        document.getElementById("multiplicity_message").textContent = xhr.responseText
-                    }
-                    xhr.send()
-                }
-                if(alphabet.value != "" && document.getElementById("id").value != "" && document.getElementById("multiplicity").value != "" && document.getElementById("lastStr").value != "" && document.getElementById("firstStr").value != "") {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POSt', '/'+document.getElementById("id").value+'/generateGrammatic', true)
-                    xhr.onload = () => {
-                        document.getElementById("area").value = xhr.responseText
-                    }
-                    xhr.send()
-                }
+                xhr.send()
             }
         </script>
     </body>
