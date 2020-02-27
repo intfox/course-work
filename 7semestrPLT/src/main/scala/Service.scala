@@ -9,30 +9,35 @@ trait Service {
 }
 
 class ServiceImpl extends Service {
-  lazy val listNonTerminalSymbol: Stream[NonTerminal] = NonTerminal("A") #:: listNonTerminalSymbol.map( prevSymbol => NonTerminal(prevSymbol.symbol.init + (prevSymbol.symbol.last + 1).toChar) )
+
+  def listNonTerminal(terminalSymbols: List[Terminal]): Stream[NonTerminal] = {
+    lazy val listNonTerminalSymbol: Stream[NonTerminal] = NonTerminal("A") #:: listNonTerminalSymbol.map( prevSymbol => NonTerminal(prevSymbol.symbol.init + (prevSymbol.symbol.last + 1).toChar) )
+    listNonTerminalSymbol.filterNot( nt => terminalSymbols.map( _.symbol.toString ).contains( nt.render ) )
+  }
 
   override def regularGrammar(alphabet: List[Char], initStr: String, finalStr: String, multiplicity: Int, typeGrammar: TypeRegularGrammatic): IO[List[(NonTerminal, List[Symbol])]] = typeGrammar match {
     case RightLinear =>
+      val filteredListNonTerminalSymbol = listNonTerminal(alphabet.map(Terminal.apply))
       val numbBalancingRule = if((initStr.length + finalStr.length) % multiplicity != 0)  multiplicity - (initStr.length + finalStr.length) % multiplicity else 0
-      val initStrGrammatic = List(listNonTerminalSymbol.head -> (initStr.toList.map( Terminal ) :+ listNonTerminalSymbol(1)))
+      val initStrGrammatic = List(filteredListNonTerminalSymbol.head -> (initStr.toList.map( Terminal ) :+ filteredListNonTerminalSymbol(1)))
         .++(
-          if(numbBalancingRule == 0) List(listNonTerminalSymbol.head -> (initStr.toList.map( Terminal ) :+ listNonTerminalSymbol(1 + numbBalancingRule + multiplicity)))
+          if(numbBalancingRule == 0) List(filteredListNonTerminalSymbol.head -> (initStr.toList.map( Terminal ) :+ filteredListNonTerminalSymbol(1 + numbBalancingRule + multiplicity)))
           else List.empty)
         .++(
-          listPrefixWithNotPostfixPrefixLast(initStr, finalStr).filter( str => (str + finalStr).length % multiplicity == 0 ).map( prefix => listNonTerminalSymbol.head -> (prefix.map(c => Terminal(c)).toList :+ listNonTerminalSymbol(1 + numbBalancingRule + multiplicity)) )
+          listPrefixWithNotPostfixPrefixLast(initStr, finalStr).filter( str => (str + finalStr).length % multiplicity == 0 ).map( prefix => filteredListNonTerminalSymbol.head -> (prefix.map(c => Terminal(c)).toList :+ filteredListNonTerminalSymbol(1 + numbBalancingRule + multiplicity)) )
         )
-      val characterBalancingGrammatic = listNonTerminalSymbol.drop(1).take(numbBalancingRule)
-        .zip(listNonTerminalSymbol.drop(2).take(numbBalancingRule))
+      val characterBalancingGrammatic = filteredListNonTerminalSymbol.drop(1).take(numbBalancingRule)
+        .zip(filteredListNonTerminalSymbol.drop(2).take(numbBalancingRule))
         .flatMap{ case (symbolRule, symbolNextRule) => alphabet.map( Terminal ).map( alphabetSymbol => symbolRule -> List(alphabetSymbol, symbolNextRule) ) }
         .++(
           if(numbBalancingRule == 0) List.empty
-          else alphabet.map( alphabetSymbol => listNonTerminalSymbol(numbBalancingRule) -> List( Terminal(alphabetSymbol), listNonTerminalSymbol(1 + numbBalancingRule + multiplicity) ) ) ) .toList
-      val cicleGrammatic = listNonTerminalSymbol.drop(1 + numbBalancingRule).take(multiplicity - 1)
-        .zip( listNonTerminalSymbol.drop(1 + numbBalancingRule + 1).take(multiplicity - 1))
+          else alphabet.map( alphabetSymbol => filteredListNonTerminalSymbol(numbBalancingRule) -> List( Terminal(alphabetSymbol), filteredListNonTerminalSymbol(1 + numbBalancingRule + multiplicity) ) ) ) .toList
+      val cicleGrammatic = filteredListNonTerminalSymbol.drop(1 + numbBalancingRule).take(multiplicity - 1)
+        .zip( filteredListNonTerminalSymbol.drop(1 + numbBalancingRule + 1).take(multiplicity - 1))
         .flatMap{ case (symbolRule, symbolNextRule) => alphabet.map( alphabetSymbol => symbolRule -> List(Terminal(alphabetSymbol), symbolNextRule) ) }
-        .++( alphabet.map( alphabetSymbol => listNonTerminalSymbol(1 + numbBalancingRule + (multiplicity - 1)) -> List( Terminal(alphabetSymbol), listNonTerminalSymbol(1 + numbBalancingRule + multiplicity) ) ) )
-        .++( alphabet.map( alphabetSymbol => listNonTerminalSymbol(1 + numbBalancingRule + (multiplicity - 1)) -> List( Terminal(alphabetSymbol), listNonTerminalSymbol(1 + numbBalancingRule ) ) ) ).toList
-      val finalStrGrammatic = listNonTerminalSymbol(1 + numbBalancingRule + multiplicity).->[List[Terminal]](finalStr.toList.map( Terminal ))
+        .++( alphabet.map( alphabetSymbol => filteredListNonTerminalSymbol(1 + numbBalancingRule + (multiplicity - 1)) -> List( Terminal(alphabetSymbol), filteredListNonTerminalSymbol(1 + numbBalancingRule + multiplicity) ) ) )
+        .++( alphabet.map( alphabetSymbol => filteredListNonTerminalSymbol(1 + numbBalancingRule + (multiplicity - 1)) -> List( Terminal(alphabetSymbol), filteredListNonTerminalSymbol(1 + numbBalancingRule ) ) ) ).toList
+      val finalStrGrammatic = filteredListNonTerminalSymbol(1 + numbBalancingRule + multiplicity).->[List[Terminal]](finalStr.toList.map( Terminal ))
 
       IO((initStrGrammatic ++ characterBalancingGrammatic) ++ cicleGrammatic :+ finalStrGrammatic)
     case LeftLinear =>
