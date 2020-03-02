@@ -13,30 +13,32 @@
     </head>
     <body style="overflow:hidden;">
         <div class="main ui container">
-            <div class="ui tini three unstackable steps">
+            <div class="ui three unstackable steps">
                 <a class="step" id="step_generate_grammar" onclick="showGenerateGrammar()">Описание языка</a>
                 <a class="step" id="step_generate_str" onclick="showGenerateStr()">Грамматика</a>
                 <a class="disabled step" id="step_str" onclick="showStr()">Цепочки</a>
             </div>
-            <div class="ui form" id="form_generate_grammar" style="display: none;">
+            <form class="ui form" id="form_generate_grammar" style="display: none;">
                 <div class="field">
                     <label>Алфавит</label>
                     <input type="text" id="alphabet">
                     <div class="ui pointing red basic label" id="alphabet_message" style="display: None"></div>
                 </div>
-                <div class="field">
-                    <label>Начальная подцепочка</label>
-                    <input type="text" placeholder="first str" id="initStr">
-                    <div class="ui pointing red basic label" id="initStr_message" style="display: None"></div>
-                </div>
-                <div class="field">
-                    <label>Конечная подцепочка</label>
-                    <input type="text" placeholder="last str" id="finalStr">
-                    <div class="ui pointing red basic label" id="finalStr_message" style="display: None"></div>
+                <div class="two fields">
+                    <div class="field">
+                        <label>Начальная подцепочка</label>
+                        <input type="text" id="initStr">
+                        <div class="ui pointing red basic label" id="initStr_message" style="display: None"></div>
+                    </div>
+                    <div class="field">
+                        <label>Конечная подцепочка</label>
+                        <input type="text" id="finalStr">
+                        <div class="ui pointing red basic label" id="finalStr_message" style="display: None"></div>
+                    </div>
                 </div>
                 <div class="field">
                     <label>Кратность</label>
-                    <input type="number" placeholder="multiplicity" id="multiplicity">
+                    <input type="number" id="multiplicity">
                     <div class="ui pointing red basic label" id="multiplicity_message" style="display: None"></div>
                 </div>
                 <div class="field">
@@ -46,9 +48,9 @@
                         <option value="leftLinear">Леволинейная</option>
                     </select>
                 </div>
-                <div class="ui button" onclick="test()">Сгенерировать грамматику</div>
-            </div>
-            <div class="ui form" id="form_generate_str" style="display: none;">
+                <div class="ui right floated primary button" onclick="test()">Сгенерировать грамматику</div>
+            </form>
+            <form class="ui form" id="form_generate_str" style="display: none;">
                 <div class="field">
                     <label>Грамматика</label>
                     <textarea id="area_grammar"></textarea>
@@ -65,14 +67,14 @@
                         <div class="ui pointing red basic label" id="maxSize_message" style="display: None"></div>
                     </div>
                 </div>
-                <div class="ui button" onclick="generateStr()">Сгенерировать цепочки</div>
-            </div>
+                <div class="ui right floated primary button" onclick="generateStr()">Сгенерировать цепочки</div>
+            </form>
             <div class="ui form" id="str" style="display: none;">
                 <div class="field">
                     <label>Цепочки</label>
                     <textarea id="area_str"></textarea>
                 </div>
-                <div class="ui button" onclick="saveReportFile()">Сохранить отчет</div>
+                <div class="ui right floated button" onclick="saveReportFile()">Сохранить отчет</div>
             </div>
         </div>
         <script>

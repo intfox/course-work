@@ -1,10 +1,8 @@
 import cats.effect.{ IO, ExitCode, IOApp }
 import cats.implicits._
-import cats.{ UnorderedTraverse, CommutativeApplicative, Applicative }
 
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.server.staticcontent._
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.implicits._
 
